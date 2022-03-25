@@ -79,7 +79,7 @@ class _SearchDemoPersistState extends State<SearchDemoPersist> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Pesquisar'),
+          title: Text('Search'),
           content: Container(
             width: double.maxFinite,
             child: SimpleSearch<int, Person>(
@@ -131,14 +131,27 @@ class _SearchDemoPersistState extends State<SearchDemoPersist> {
       ),
       body: SafeArea(
         child: SimpleSearch<int, Person>.persistent(
+          maxHeigth: 160,
+          height: 80,
           pinnedSearchBar: true,
           persistentSearchBar: SimpleSearchBar(
             searchBarElevation: 8.0,
+            topLeading: true,
             leading: IconButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               icon: Icon(Icons.arrow_back),
+            ),
+            title: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Find a pokemon or people',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w500),
+              ),
             ),
             clearAction: Icon(Icons.clear),
             textFieldDecoration: BoxDecoration(

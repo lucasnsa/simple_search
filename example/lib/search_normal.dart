@@ -65,7 +65,7 @@ class _SearchDemoNormalState extends State<SearchDemoNormal> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Pesquisar'),
+          title: Text('Search'),
           content: Container(
             width: double.maxFinite,
             child: SimpleSearch<int, Person>(
@@ -90,6 +90,7 @@ class _SearchDemoNormalState extends State<SearchDemoNormal> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8)),
                 onChangeSearch: (text) {
+                  debugPrint('chamou');
                   _searchTerm = text;
                   _pagingController.refresh();
                 },
@@ -115,39 +116,56 @@ class _SearchDemoNormalState extends State<SearchDemoNormal> {
           _incrementCounter();
         },
       ),
-      body: SafeArea(
-        child: SimpleSearch<int, Person>(
-          pagedSliverList: PagedSliverList(
-            pagingController: _pagingController,
-            builderDelegate: PagedChildBuilderDelegate(
-              animateTransitions: true,
-              itemBuilder: (context, item, index) => ListTile(
-                title: Text(item.name),
-              ),
+      body: SimpleSearch<int, Person>(
+        pagedSliverList: PagedSliverList(
+          pagingController: _pagingController,
+          builderDelegate: PagedChildBuilderDelegate(
+            animateTransitions: true,
+            itemBuilder: (context, item, index) => ListTile(
+              title: Text(item.name),
             ),
           ),
-          searchBar: SimpleSearchBar(
-            searchBarElevation: 8.0,
-            leading: IconButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              icon: Icon(Icons.arrow_back),
+        ),
+        searchBar: SimpleSearchBar(
+          searchBarElevation: 3.0,
+          padding: EdgeInsets.all(24),
+          leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: Icon(Icons.close),
+          ),
+          topLeading: true,
+          title: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Find a pokemon or people',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w500),
             ),
-            clearAction: Icon(Icons.clear),
-            textFieldDecoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(8)),
-            onChangeSearch: (text) {
+          ),
+          clearAction: Icon(Icons.delete),
+          textFieldDecoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(8)),
+          inputDecoration: InputDecoration(
+            prefixIcon: Icon(Icons.search),
+            border: InputBorder.none,
+          ),
+          onChangeSearch: (text) {
+            // Does not search if it is the same text
+            if (text != _searchTerm) {
               _searchTerm = text;
               _pagingController.refresh();
-            },
-            searchTermValidator: (value) {
-              if (value != null && value.length < 3) {
-                return false;
-              }
-              return true;
-            },
-          ),
+            }
+          },
+          searchTermValidator: (value) {
+            if (value != null && value.length < 3) {
+              return false;
+            }
+            return true;
+          },
         ),
       ),
     );
