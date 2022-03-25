@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:simple_search/src/simple_search_bar.dart';
 
 class SimpleSearch<A, T> extends StatefulWidget {
   SimpleSearch({
@@ -13,16 +14,20 @@ class SimpleSearch<A, T> extends StatefulWidget {
 
   SimpleSearch.persistent({
     Key? key,
-    required Widget persistentSearchBar,
+    required SimpleSearchBar persistentSearchBar,
     double height = 56.0,
+    double maxHeigth = 130.0,
     bool pinnedSearchBar = false,
     bool floatingSearchBar = false,
     required this.pagedSliverList,
   })  : effectiveSearchBar = SliverPersistentHeader(
           pinned: pinnedSearchBar,
           floating: floatingSearchBar,
-          delegate:
-              PersistentSearchBar(widget: persistentSearchBar, heigth: height),
+          delegate: PersistentSearchBar(
+              widget: persistentSearchBar,
+              height: (persistentSearchBar.topLeading ?? false
+                  ? height + 48
+                  : height)),
         ),
         super(key: key);
 
@@ -47,30 +52,26 @@ class _SimpleSearchState extends State<SimpleSearch> {
 
 class PersistentSearchBar extends SliverPersistentHeaderDelegate {
   final Widget widget;
-  final double heigth;
+  final double height;
+  final double? maxHeigth;
 
-  PersistentSearchBar({required this.widget, required this.heigth});
+  PersistentSearchBar(
+      {required this.widget, required this.height, this.maxHeigth});
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      width: double.infinity,
-      height: heigth,
-      child: Card(
-        margin: EdgeInsets.all(0),
-        color: Colors.white,
-        elevation: 5.0,
-        child: Center(child: widget),
-      ),
+    return PreferredSize(
+      child: widget,
+      preferredSize: Size.fromHeight(height),
     );
   }
 
   @override
-  double get maxExtent => 56.0;
+  double get maxExtent => maxHeigth ?? height;
 
   @override
-  double get minExtent => 56.0;
+  double get minExtent => height;
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
