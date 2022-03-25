@@ -8,6 +8,28 @@ class SimpleSearchBar extends StatefulWidget {
   const SimpleSearchBar({
     Key? key,
     this.leading,
+    this.topLeading,
+    this.padding,
+    this.title,
+    this.textFieldDecoration,
+    this.inputDecoration,
+    this.clearAction = const Icon(Icons.clear),
+    required this.onChangeSearch,
+    this.searchBarElevation = 0.0,
+    this.searchBorderRadiusGeometry,
+    this.textFieldTextStyle,
+    this.debounceDuration = const Duration(milliseconds: 500),
+    this.searchBarDecoration,
+    this.searchTermValidator,
+  }) : super(key: key);
+
+  /// Put the leading on top of the bar
+  const SimpleSearchBar.topLeading({
+    Key? key,
+    this.leading,
+    this.topLeading = true,
+    this.padding,
+    this.title,
     this.textFieldDecoration,
     this.inputDecoration,
     this.clearAction = const Icon(Icons.clear),
@@ -24,6 +46,9 @@ class SimpleSearchBar extends StatefulWidget {
   const SimpleSearchBar.google({
     Key? key,
     this.leading,
+    this.topLeading,
+    this.padding,
+    this.title,
     this.textFieldDecoration,
     this.inputDecoration,
     this.clearAction = const Icon(Icons.clear),
@@ -43,6 +68,15 @@ class SimpleSearchBar extends StatefulWidget {
   /// A widget to display before the search field.
   /// Typically the leading widget is an Icon or an IconButton.
   final Widget? leading;
+
+  /// Put the leading on the top of bar
+  final bool? topLeading;
+
+  /// Title of bar
+  final Widget? title;
+
+  // Padding of the bar
+  final EdgeInsetsGeometry? padding;
 
   /// A widget with action that clear search field.
   /// Typically the cleatAction widget is an Icon or an IconButton.
@@ -81,14 +115,14 @@ class SimpleSearchBar extends StatefulWidget {
 
 class _SimpleSearchBarState extends State<SimpleSearchBar> {
   var _cancelIsVisible = false;
-  final _seachTextFieldController = TextEditingController();
+  final _searchTextFieldController = TextEditingController();
   Timer? _debounce;
 
-  String get _value => _seachTextFieldController.value.text;
+  String get _value => _searchTextFieldController.value.text;
   bool get isValid => widget.searchTermValidator?.call(_value) ?? true;
 
   void _cancel() {
-    _seachTextFieldController.clear();
+    _searchTextFieldController.clear();
   }
 
   void _onSearchDebounce(String text) async {
@@ -105,14 +139,15 @@ class _SimpleSearchBarState extends State<SimpleSearchBar> {
 
   @override
   void initState() {
-    _seachTextFieldController.addListener(() {
-      _onSearchDebounce(_seachTextFieldController.text);
+    _searchTextFieldController.addListener(() {
+      _onSearchDebounce(_searchTextFieldController.text);
     });
     super.initState();
   }
 
   @override
   void dispose() {
+    _searchTextFieldController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -121,64 +156,77 @@ class _SimpleSearchBarState extends State<SimpleSearchBar> {
   Widget build(BuildContext context) {
     final widthMax = MediaQuery.of(context).size.width;
 
+    bool? topLeading = widget.topLeading ?? false;
+
     Widget? leading = widget.leading;
-    if (leading != null) {
+    if (leading != null && topLeading == false) {
       leading = ConstrainedBox(
-        constraints: const BoxConstraints.tightFor(width: 80),
+        constraints: BoxConstraints.tightFor(width: 80),
         child: leading,
       );
     }
+
+    EdgeInsetsGeometry? padding = widget.padding ?? EdgeInsets.all(8);
+
+    Widget? title = widget.title;
 
     return Material(
       borderRadius: widget.searchBorderRadiusGeometry,
       elevation: widget.searchBarElevation,
       child: Container(
-        padding: EdgeInsets.all(8),
+        padding: padding,
         decoration: widget.searchBarDecoration,
-        height: 80,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            leading ?? SizedBox.shrink(),
-            Flexible(
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                width: _cancelIsVisible ? widthMax * .9 : widthMax,
-                decoration: widget.textFieldDecoration,
-                child: Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Theme(
-                    child: TextField(
-                      controller: _seachTextFieldController,
-                      style: widget.textFieldTextStyle,
-                      decoration: widget.inputDecoration,
-                    ),
-                    data: Theme.of(context).copyWith(
-                      primaryColor: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: _cancel,
-              child: AnimatedOpacity(
-                opacity: _cancelIsVisible ? 1.0 : 0,
-                curve: Curves.easeIn,
-                duration: Duration(milliseconds: _cancelIsVisible ? 500 : 0),
-                child: AnimatedContainer(
-                  duration: Duration(milliseconds: 200),
-                  width: _cancelIsVisible
-                      ? MediaQuery.of(context).size.width * .1
-                      : 0,
-                  child: Container(
-                    color: Colors.transparent,
-                    child: Center(
-                      child: widget.clearAction,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            topLeading ? leading ?? SizedBox.shrink() : SizedBox.shrink(),
+            title ?? SizedBox.shrink(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                !topLeading ? leading ?? SizedBox.shrink() : SizedBox.shrink(),
+                Flexible(
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 200),
+                    width: _cancelIsVisible ? widthMax * .9 : widthMax,
+                    decoration: widget.textFieldDecoration,
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Theme(
+                        child: TextField(
+                          controller: _searchTextFieldController,
+                          style: widget.textFieldTextStyle,
+                          decoration: widget.inputDecoration,
+                        ),
+                        data: Theme.of(context).copyWith(
+                          primaryColor: Colors.black,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+                GestureDetector(
+                  onTap: _cancel,
+                  child: AnimatedOpacity(
+                    opacity: _cancelIsVisible ? 1.0 : 0,
+                    curve: Curves.easeIn,
+                    duration:
+                        Duration(milliseconds: _cancelIsVisible ? 500 : 0),
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 200),
+                      width: _cancelIsVisible
+                          ? MediaQuery.of(context).size.width * .1
+                          : 0,
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Center(
+                          child: widget.clearAction,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
